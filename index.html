@@ -1,96 +1,214 @@
-社區管理委員會 - 會議決議總覽
-最新更新：115 年 6 月
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社區管理委員會 - 會議紀錄決議總覽</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f1f5f9; color: #1e293b; line-height: 1.6; padding-bottom: 3rem; }
+        
+        header { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 2rem 1rem; text-align: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; font-weight: 700; }
+        header .badge { background-color: rgba(255, 255, 255, 0.2); padding: 0.3rem 0.8rem; border-radius: 9999px; font-size: 0.85rem; display: inline-block; border: 1px solid rgba(255, 255, 255, 0.4); }
 
-試試看：輸入廠商名稱、公設項目或特定月份即可快速進行即時篩選。
+        .container { max-width: 850px; margin: -1.5rem auto 0; padding: 0 1rem; position: relative; z-index: 10; }
 
-查無相關決議紀錄
-請嘗試輸入其他關鍵字，例如：「催繳」、「消防」、「抽籤」等。
+        .search-card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
+        .search-title { font-size: 1.1rem; font-weight: bold; color: #1e293b; margin-bottom: 0.6rem; }
+        .search-box { display: flex; gap: 0.5rem; }
+        .search-input { flex: 1; padding: 0.8rem 1rem; font-size: 1.05rem; border: 2px solid #2563eb; border-radius: 8px; outline: none; }
+        .search-input:focus { box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3); }
+        .clear-btn { padding: 0.8rem 1.2rem; background-color: #64748b; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .clear-btn:hover { background-color: #475569; }
+        .search-tip { font-size: 0.85rem; color: #64748b; margin-top: 0.6rem; }
 
-第 2 屆 第 3 次例行會議
-114 年 12 月 18 日
+        .meeting-card { background: white; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 1.5rem; overflow: hidden; }
+        .meeting-header { background-color: #f8fafc; padding: 1rem 1.25rem; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+        .meeting-title { font-size: 1.2rem; font-weight: bold; color: #0f172a; }
+        .meeting-date { font-size: 0.85rem; background-color: #e2e8f0; color: #334155; padding: 0.25rem 0.6rem; border-radius: 6px; font-weight: 600; }
+        .meeting-body { padding: 1.25rem; }
 
-財務與催繳114年11月財務報表通過，印鑑用印後於智生活公告。逾期催繳通知將附上「管理費收繳作業辦法」連結與存證信函。
+        ul { list-style: none; }
+        li { margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 1px dashed #e2e8f0; }
+        li:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        
+        .tag { display: inline-block; background-color: #dbeafe; color: #1e40af; font-size: 0.8rem; font-weight: bold; padding: 0.25rem 0.6rem; border-radius: 4px; margin-right: 0.5rem; margin-bottom: 0.3rem; }
+        .tag-alert { background-color: #fef3c7; color: #92400e; }
+        
+        .content-text { font-size: 0.98rem; color: #334155; }
 
-化糞池抽取採最低價廠商「吉家(同記)」辦理抽取水肥事務（總價 25,000 元未稅）。
+        .grid-box { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.8rem; margin-top: 0.8rem; }
+        .grid-item { padding: 0.8rem; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.9rem; }
+        .bg-danger { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+        .bg-warning { background: #fffbebfb; border-color: #fef3c7; color: #92400e; }
+        .bg-info { background: #f0f9ff; border-color: #e0f2fe; color: #0369a1; }
 
-污水申報採最低價廠商「環合」辦理本年度社區污水申報業務（總價 15,000 元未稅，含水錶校正）。
+        .no-result { text-align: center; padding: 3rem 1rem; background: white; border-radius: 12px; color: #64748b; display: none; }
+        footer { text-align: center; margin-top: 2rem; color: #94a3b8; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
 
-節日佈置請經理購置節慶窗貼於聖誕節前完成，並預留春節、元宵節佈置空間。
+    <header>
+        <h1>社區管理委員會 - 會議決議總覽</h1>
+        <span class="badge">最新更新：115 年 6 月</span>
+    </header>
 
-臨時動議通過「本社區管理委員會委員出席費支領作業細則」（自 114 年 12 月 21 日公告施行），視訊參與比例擬後續研議。修繕部分確認 114 年 12 月 9 日第五次臨時會議紀錄，轉予皇翔建設於 115 年 1 月 31 日前完成修繕以便排定復驗。
+    <div class="container">
 
-第 2 屆 第 6 次臨時會議
-115 年 5 月 14 日
+        <div class="search-card">
+            <div class="search-title">🔍 關鍵字搜尋會議決議</div>
+            <div class="search-box">
+                <input type="text" id="searchInput" class="search-input" placeholder="請輸入關鍵字（例如：水塔、防焰、端午、點數...）" onkeyup="filterContent()">
+                <button class="clear-btn" onclick="clearSearch()">清除搜尋</button>
+            </div>
+            <div class="search-tip">💡 輸入關鍵字後，系統會自動搜尋並即時顯示相關的會議紀錄。</div>
+        </div>
 
-公設點交核心原則：
+        <div id="noResult" class="no-result">
+            <h3>😔 查無相關決議紀錄</h3>
+            <p style="margin-top: 0.5rem;">請嘗試換其他關鍵字搜尋，例如：「催繳」、「消防」、「抽籤」等。</p>
+        </div>
 
-**法定項目：**目標完成點交以申請領回公共基金。
+        <div id="meetingList">
 
+            <div class="meeting-card">
+                <div class="meeting-header">
+                    <span class="meeting-title">第 2 屆 第 3 次例行會議</span>
+                    <span class="meeting-date">114 年 12 月 18 日</span>
+                </div>
+                <div class="meeting-body">
+                    <ul>
+                        <li><span class="tag">財務與催繳</span><span class="content-text">114年11月財務報表通過，印鑑用印後於智生活公告[span_0](start_span)[span_0](end_span)。逾期催繳通知將附上「管理費收繳作業辦法」連結與存證信函[span_1](start_span)[span_1](end_span)。</span></li>
+                        <li><span class="tag">化糞池抽取</span><span class="content-text">採最低價廠商「吉家(同記)」辦理抽取水肥事務（總價 25,000 元未稅）[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span)。</span></li>
+                        <li><span class="tag">污水申報</span><span class="content-text">採最低價廠商「環合」辦理本年度社區污水申報業務（總價 15,000 元未稅，含水錶校正）[span_4](start_span)[span_4](end_span)[span_5](start_span)[span_5](end_span)。</span></li>
+                        <li><span class="tag">節日佈置</span><span class="content-text">請經理購置節慶窗貼於聖誕節前完成，並預留春節、元宵節佈置空間[span_6](start_span)[span_6](end_span)。</span></li>
+                        <li><span class="tag tag-alert">臨時動議</span><span class="content-text">通過「本社區管理委員會委員出席費支領作業細則」（自 114 年 12 月 21 日公告施行）[span_7](start_span)[span_7](end_span)，視訊參與比例擬後續研議[span_8](start_span)[span_8](end_span)。修繕部分確認 114 年 12 月 9 日第五次臨時會議紀錄，轉予皇翔建設於 115 年 1 月 31 日前完成修繕以便排定復驗[span_9](start_span)[span_9](end_span)。</span></li>
+                    </ul>
+                </div>
+            </div>
 
-**非法定項目：**非涉及結構與公安項目（如磁磚、漏水、坪破損、植栽等）不作為卡關條件，改於協議中附加具體保固條款，要求限期修繕或延長保固。
+            <div class="meeting-card">
+                <div class="meeting-header">
+                    <span class="meeting-title">第 2 屆 第 6 次臨時會議</span>
+                    <span class="meeting-date">115 年 5 月 14 日</span>
+                </div>
+                <div class="meeting-body">
+                    <p style="font-weight:bold; font-size: 1.05rem; margin-bottom:0.3rem;">公設點交核心原則：</p>
+                    <p class="content-text" style="margin-bottom:1rem;">
+                        <strong>• 法定項目：</strong>目標完成點交以申請領回公共基金[span_10](start_span)[span_10](end_span)。<br>
+                        <strong>• 非法定項目：</strong>非涉及結構與公安項目（如磁磚、漏水、坪破損、植栽等）不作為卡關條件，改於協議中附加具體保固條款，要求限期修繕或延長保固[span_11](start_span)[span_11](end_span)。
+                    </p>
+                    <p style="font-weight:bold; font-size: 1.05rem; margin-bottom:0.3rem;">核心缺失審查應對：</p>
+                    <div class="grid-box">
+                        <div class="grid-item bg-danger">
+                            <strong>【S級】水塔漏水</strong>
+                            <p style="margin-top:0.3rem;">B棟B3及A棟B5水塔因打針注漿止水，暫不解列並列入觀察，要求建商延長保固[span_12](start_span)[span_12](end_span)。</p>
+                        </div>
+                        <div class="grid-item bg-warning">
+                            <strong>【A級】梯廳防火門</strong>
+                            <p style="margin-top:0.3rem;">B棟多樓層（20F, 18F, 13F, 9F, 8F）閉合不全，要求建商全面調校後始得解列[span_13](start_span)[span_13](end_span)。</p>
+                        </div>
+                        <div class="grid-item bg-warning">
+                            <strong>【A級】泳池機房</strong>
+                            <p style="margin-top:0.3rem;">要求提出通風改善方案或加裝抽排風設備，並進行除鏽防鏽塗裝，改善前不予解列[span_14](start_span)[span_14](end_span)。</p>
+                        </div>
+                        <div class="grid-item bg-info">
+                            <strong>安檢與設施</strong>
+                            <p style="margin-top:0.3rem;">健身房更換具防焰標章地墊[span_15](start_span)[span_15](end_span)；全區防火門確保火災警報時具備自動斷電解鎖功能[span_16](start_span)[span_16](end_span)。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-核心缺失審查應對：
+            <div class="meeting-card">
+                <div class="meeting-header">
+                    <span class="meeting-title">第 2 屆 第 7 次例行會議</span>
+                    <span class="meeting-date">115 年 4 月 16 日</span>
+                </div>
+                <div class="meeting-body">
+                    <ul>
+                        <li><span class="tag">公設修繕點交</span><span class="content-text">擬邀請第三方（太古華電）及律師開會取得共識，提列公設協商項目（包含水塔保固、垃圾場門禁、防火門更換等）[span_17](start_span)[span_17](end_span)。</span></li>
+                        <li><span class="tag">端午節活動</span><span class="content-text">問卷選出「端午香氛擴香掛飾」及「艾草植物手作拓印」[span_18](start_span)[span_18](end_span)，預先調查意願未達 74 戶則取消[span_19](start_span)[span_19](end_span)。</span></li>
+                        <li><span class="tag">污水管清淤</span><span class="content-text">採最低價廠商「吉家(同記)」承作（總價 114,000 元）[span_20](start_span)[span_20](end_span)。</span></li>
+                        <li><span class="tag">營運與維護</span><span class="content-text">5/1~5/13 辦理物業保全滿意度問卷[span_21](start_span)[span_21](end_span)；太古華電機電維養合約屆期續約[span_22](start_span)[span_22](end_span)；115年6月19日起開放公共區域冷氣（14:00~19:00）[span_23](start_span)[span_23](end_span)；預定 8月22日 辦理中元普渡[span_24](start_span)[span_24](end_span)。</span></li>
+                    </ul>
+                </div>
+            </div>
 
-【S級】水塔漏水
+            <div class="meeting-card">
+                <div class="meeting-header">
+                    <span class="meeting-title">第 2 屆 第 8 次例行會議</span>
+                    <span class="meeting-date">115 年 5 月 21 日</span>
+                </div>
+                <div class="meeting-body">
+                    <ul>
+                        <li><span class="tag">活動與發包</span><span class="content-text">端午活動因有意願者僅 32 票（未達 79 票門檻）暫停辦理[span_25](start_span)[span_25](end_span)；下半年化糞池抽取由「吉家(同記)」承辦（總價 25,000 元）[span_26](start_span)[span_26](end_span)。</span></li>
+                        <li><span class="tag">OTIS 電梯養護</span><span class="content-text">請 OTIS 提供全責/半責保養內容，並將電梯保養費納入與皇翔建設點交之重點協商項目[span_27](start_span)[span_27](end_span)。</span></li>
+                        <li><span class="tag">區權人會議</span><span class="content-text">第 3 屆區權人會議首次訂於 7 月 25 日（六）上午於一樓大廳辦理；備用時間為 8/23 或 8/29[span_28](start_span)[span_28](end_span)。</span></li>
+                    </ul>
+                </div>
+            </div>
 
-B棟B3及A棟B5水塔因打針注漿止水，暫不解列並列入觀察，要求建商延長保固。
+            <div class="meeting-card">
+                <div class="meeting-header">
+                    <span class="meeting-title">第 2 屆 第 9 次例行會議</span>
+                    <span class="meeting-date">115 年 6 月 18 日</span>
+                </div>
+                <div class="meeting-body">
+                    <p style="font-weight:bold; font-size: 1.05rem; margin-bottom:0.3rem;">第 3 屆區權人會議籌備：</p>
+                    <p class="content-text" style="margin-bottom:1rem;">
+                        訂於 7/25（六）於大廳召開，若人數不足重新召集則定於 8/29（六）於大安里活動中心[span_29](start_span)[span_29](end_span)。7/1 前發放通知，7/8 提案截止[span_30](start_span)[span_30](end_span)。主要討論四案：公設管理辦法、委員票選推薦、機車位重抽（採線上電腦一鍵抽籤並全程錄影）、住戶提案規約[span_31](start_span)[span_31](end_span)。
+                    </p>
+                    <p style="font-weight:bold; font-size: 1.05rem; margin-bottom:0.3rem;">公共設施使用管理辦法重點：</p>
+                    <p class="content-text">
+                        • <strong>點數：</strong>繳費月25日前繳清發放，加購 1點=10元[span_32](start_span)[span_32](end_span)。<br>
+                        • <strong>預約：</strong>以住戶為限，預約1小時扣10點[span_33](start_span)[span_33](end_span)。<br>
+                        • <strong>兒童區：</strong>上限6名孩童，每位陪同家長至多2人[span_34](start_span)[span_34](end_span)。<br>
+                        • <strong>商業/包場：</strong>商業授課1000元/小時；包場免場地費(限2次/月)[span_35](start_span)[span_35](end_span)。<br>
+                        • <strong>違規與罰則：</strong>未取消達3次停權；毀損處500元清潔費加照價賠償；卡片補發500元[span_36](start_span)[span_36](end_span)。<br>
+                        • <strong>條款修正：</strong>金額事項經區權會，行政條款授權管委會[span_37](start_span)[span_37](end_span)。
+                    </p>
+                </div>
+            </div>
 
-【A級】梯廳防火門
+        </div>
 
-B棟多樓層（20F, 18F, 13F, 9F, 8F）閉合不全，要求建商全面調校後始得解列。
+        <footer>
+            <p>社區管理委員會 製作發布</p>
+        </footer>
 
-【A級】泳池機房
+    </div>
 
-要求提出通風改善方案或加裝抽排風設備，並進行除鏽防鏽塗裝，改善前不予解列。
+    <script>
+        function filterContent() {
+            var input = document.getElementById('searchInput').value.toLowerCase().trim();
+            var cards = document.getElementsByClassName('meeting-card');
+            var hasVisible = false;
 
-安檢與設施
+            for (var i = 0; i < cards.length; i++) {
+                var cardText = cards[i].innerText.toLowerCase();
+                if (cardText.includes(input)) {
+                    cards[i].style.display = "";
+                    hasVisible = true;
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
 
-健身房更換具防焰標章地墊；全區防火門確保火災警報時具備自動斷電解鎖功能。
+            var noResult = document.getElementById('noResult');
+            if (hasVisible) {
+                noResult.style.display = "none";
+            } else {
+                noResult.style.display = "block";
+            }
+        }
 
-第 2 屆 第 7 次例行會議
-115 年 4 月 16 日
-
-公設修繕點交擬邀請第三方（太古華電）及律師開會取得共識，提列公設協商項目（包含水塔保固、垃圾場門禁、防火門更換等）。
-
-端午節活動問卷選出「端午香氛擴香掛飾」及「艾草植物手作拓印」，預先調查意願未達 74 戶則取消。
-
-污水管清淤採最低價廠商「吉家(同記)」承作（總價 114,000 元）。
-
-營運與維護5/15/13 辦理物業保全滿意度問卷；太古華電機電維養合約屆期續約；115年6月19日起開放公共區域冷氣（14:0019:00）；預定 8月22日 辦理中元普渡。
-
-第 2 屆 第 8 次例行會議
-115 年 5 月 21 日
-
-活動與發包端午活動因有意願者僅 32 票（未達 79 票門檻）暫停辦理；下半年化糞池抽取由「吉家(同記)」承辦（總價 25,000 元）。
-
-OTIS 電梯養護請 OTIS 提供全責/半責保養內容，並將電梯保養費納入與皇翔建設點交之重點協商項目。
-
-區權人會議第 3 屆區權人會議首次訂於 7 月 25 日（六）上午於一樓大廳辦理；備用時間為 8/23 或 8/29。
-
-第 2 屆 第 9 次例行會議
-115 年 6 月 18 日
-
-第 3 屆區權人會議籌備：
-
-訂於 7/25（六）於大廳召開，若人數不足重新召集則定於 8/29（六）於大安里活動中心。7/1 前發放通知，7/8 提案截止。主要討論四案：公設管理辦法、委員票選推薦、機車位重抽（採線上電腦一鍵抽籤並全程錄影）、住戶提案規約。
-
-公共設施使用管理辦法重點：
-
-• **點數：**繳費月25日前繳清發放，加購 1點=10元。
-
-
-• **預約：**以住戶為限，預約1小時扣10點。
-
-
-• **兒童區：**上限6名孩童，每位陪同家長至多2人。
-
-
-• **商業/包場：**商業授課1000元/小時；包場免場地費(限2次/月)。
-
-
-• **違規與罰則：**未取消達3次停權；毀損處500元清潔費加照價賠償；卡片補發500元。
-
-
-• **條款修正：**金額事項經區權會，行政條款授權管委會。
-
-社區管理委員會 製作發布
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            filterContent();
+        }
+    </script>
+</body>
+</html>
