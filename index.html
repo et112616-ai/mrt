@@ -278,19 +278,24 @@
         if (formText) {
             const dataObj = parseGoogleResponse(formText);
             if (dataObj && dataObj.table && dataObj.table.rows) {
-                dataObj.table.rows.forEach(row => {
+                dataObj.table.rows.forEach((row, index) => {
                     if (!row.c) return;
 
-                    // 假設會議名稱在第 1 欄 (row.c[1])，若無則抓第 0 欄
-                    const titleRaw = (row.c[1] && row.c[1].v) ? row.c[1].v : (row.c[0] && row.c[0].v ? row.c[0].v : null);
+                    // 🔍 【偵錯用】把表單每一欄的內容印出來看，請按 F12 在主控台檢查
+                    console.log(`表單第 ${index + 1} 列資料：`, row.c.map(cell => cell ? cell.v : '空白'));
+
+                    // ⚠️ 注意：這裡的欄位數字 (c[1], c[2]...) 必須依照您 Google 表單的「問題順序」來決定！
+                    // 假設您的表單中：
+                    // 第 1 個問題是「會議名稱」 -> 對應 row.c[1] (如果時間戳記是 c[0])
+                    // 第 2 個問題是「開會日期」 -> 對應 row.c[2]
+                    // 第 3 個問題是「標籤」     -> 對應 row.c[3]
+                    // 第 4 個問題是「決議內容」 -> 對應 row.c[4]
+
+                    const titleRaw = row.c[1] && row.c[1].v ? row.c[1].v : null;
                     if (!titleRaw) return;
 
                     const title = titleRaw.toString().trim();
-                    
-                    // 【修正 1】檢查表單回覆的日期欄位到底是哪一欄！
-                    // 假設您的表單中，開會日期在第 2 欄 (row.c[2])。如果該格有值才抓取。
                     const formDate = row.c[2] && row.c[2].v ? row.c[2].v.toString() : '';
-                    
                     const tag = row.c[3] && row.c[3].v ? row.c[3].v.toString() : '摘要';
                     const content = row.c[4] && row.c[4].v ? row.c[4].v.toString() : '';
 
@@ -301,16 +306,14 @@
 
                     const pdfUrl = formatPdfUrl(rawPdfUrl);
 
-                    // 【修正 2】防呆保護：如果這個會議標題還不存在，才新增一個
+                    // 核心邏輯：如果這個會議名稱已經存在（例如歷史紀錄有了），我們只「追加」決議內容與 PDF，絕對不蓋掉歷史紀錄的日期！
                     if (!globalMeetings[title]) {
                         globalMeetings[title] = { date: formDate, pdfUrl: pdfUrl, items: [] };
                     } else {
-                        // 如果已經存在（例如從歷史紀錄讀進來了），絕對不要被表單的空日期或錯誤日期覆蓋！
-                        // 只有當原本沒有日期，且表單有提供日期時才補上
+                        // 如果歷史紀錄已經有日期了，以歷史紀錄為主；若歷史沒日期才用表單日期
                         if (!globalMeetings[title].date && formDate) {
                             globalMeetings[title].date = formDate;
                         }
-                        // 補充 PDF 連結
                         if (!globalMeetings[title].pdfUrl && pdfUrl) {
                             globalMeetings[title].pdfUrl = pdfUrl;
                         }
