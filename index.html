@@ -3,357 +3,336 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>社區管理委員會 - 會議紀錄決議總覽</title>
+    <title>社區會議紀錄與決議事項</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f1f5f9; color: #1e293b; line-height: 1.6; padding-bottom: 3rem; }
-        
-        header { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 2rem 1rem; text-align: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; font-weight: 700; }
-        header .badge { background-color: rgba(255, 255, 255, 0.2); padding: 0.3rem 0.8rem; border-radius: 9999px; font-size: 0.85rem; display: inline-block; border: 1px solid rgba(255, 255, 255, 0.4); }
-
-        .container { max-width: 850px; margin: -1.5rem auto 0; padding: 0 1rem; position: relative; z-index: 10; }
-
-        .search-card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
-        .search-title { font-size: 1.1rem; font-weight: bold; color: #1e293b; margin-bottom: 0.6rem; }
-        .search-box { display: flex; gap: 0.5rem; }
-        .search-input { flex: 1; padding: 0.8rem 1rem; font-size: 1.05rem; border: 2px solid #2563eb; border-radius: 8px; outline: none; }
-        .clear-btn { padding: 0.8rem 1.2rem; background-color: #64748b; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .search-tip { font-size: 0.85rem; color: #64748b; margin-top: 0.6rem; }
-
-        .meeting-card { background: white; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 1.5rem; overflow: hidden; }
-        .meeting-header { background-color: #f8fafc; padding: 1rem 1.25rem; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
-        .meeting-info { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-        .meeting-title { font-size: 1.2rem; font-weight: bold; color: #0f172a; }
-        .meeting-date { font-size: 0.85rem; background-color: #e2e8f0; color: #334155; padding: 0.25rem 0.6rem; border-radius: 6px; font-weight: 600; }
-        .view-pdf-btn { background-color: #2563eb; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
-        .view-pdf-btn:hover { background-color: #1d4ed8; }
-
-        .meeting-body { padding: 1.25rem; }
-
-        ul { list-style: none; }
-        li { margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 1px dashed #e2e8f0; }
-        li:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-        
-        .tag { display: inline-block; background-color: #dbeafe; color: #1e40af; font-size: 0.8rem; font-weight: bold; padding: 0.25rem 0.6rem; border-radius: 4px; margin-right: 0.5rem; margin-bottom: 0.3rem; }
-        .content-text { font-size: 0.98rem; color: #334155; white-space: pre-line; }
-
-        .loading, .no-result { text-align: center; padding: 3rem 1rem; background: white; border-radius: 12px; color: #64748b; }
-        footer { text-align: center; margin-top: 2rem; color: #94a3b8; font-size: 0.85rem; }
-
-        /* ================= 抽屜式側滑選單 CSS ================= */
-        .drawer-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(2px);
-            z-index: 999;
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-color: #e9ecef;
         }
 
-        .drawer {
-            position: fixed;
-            top: 0; right: -600px;
-            width: 550px;
-            max-width: 90vw;
-            height: 100%;
-            background: #ffffff;
-            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
-            transition: right 0.3s ease-in-out;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
         }
 
-        .drawer.open { right: 0; }
-        .drawer-overlay.open { display: block; }
-
-        .drawer-header {
-            padding: 1.25rem;
-            background-color: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
         }
 
-        .drawer-title { font-size: 1.25rem; font-weight: 700; color: #0f172a; }
-
-        .close-btn {
-            background: none; border: none;
-            font-size: 1.8rem; color: #64748b;
-            cursor: pointer; line-height: 1;
-        }
-
-        .drawer-body {
-            padding: 1.25rem;
-            overflow-y: auto;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .drawer-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-            color: #64748b;
-        }
-
-        .external-link-btn {
-            display: inline-block;
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .pdf-frame-container {
-            width: 100%;
-            height: 600px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            overflow: hidden;
-            background-color: #f1f5f9;
-        }
-
-        .pdf-frame-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .no-pdf-msg {
+        header {
             text-align: center;
-            padding: 3rem 1rem;
-            color: #64748b;
-            background-color: #f8fafc;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        #loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .meeting-card {
+            background: var(--card-bg);
             border-radius: 8px;
-            border: 1px dashed #cbd5e1;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+            padding: 20px;
+            border-left: 5px solid var(--accent-color);
+        }
+
+        .meeting-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .meeting-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .meeting-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .meeting-date {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .pdf-btn {
+            display: inline-flex;
+            align-items: center;
+            background-color: #e74c3c;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .pdf-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .item-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .item-row {
+            padding: 8px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .item-tag {
+            background-color: #e8f4f8;
+            color: #2980b9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .item-content {
+            flex-grow: 1;
+            word-break: break-word;
+        }
+
+        .error-msg {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
 
+<div class="container">
     <header>
-        <h1>社區管理委員會 - 會議決議總覽</h1>
-        <span class="badge">即時連線更新中</span>
+        <h1>管委會會議紀錄歷史查詢</h1>
+        <p>提供歷屆會議決議事項與 PDF 紀錄檔案下載</p>
     </header>
 
-    <div class="container">
+    <div id="loading">⏳ 資料載入中，請稍候...</div>
+    <div id="error-container"></div>
+    <div id="meetings-container"></div>
+</div>
 
-        <div class="search-card">
-            <div class="search-title">🔍 關鍵字搜尋會議決議</div>
-            <div class="search-box">
-                <input type="text" id="searchInput" class="search-input" placeholder="請輸入關鍵字（例如：水塔、防焰、端午、點數...）" onkeyup="filterContent()">
-                <button class="clear-btn" onclick="clearSearch()">清除搜尋</button>
-            </div>
-            <div class="search-tip">💡 輸入關鍵字後，系統會自動搜尋並即時顯示相關的會議紀錄。</div>
-        </div>
+<script>
+    // ================= 1. 請在此處設定您的試算表資訊 =================
+    const SPREADSHEET_ID = '貼上您的_SPREADSHEET_ID'; // 例如：1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms
+    
+    // 工作表1（1~59次歷史紀錄）網址
+    const HISTORICAL_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent('歷史紀錄')}`;
+    
+    // 工作表2（60次以後表單回覆）網址 - 若工作表改名請同步更新 sheet 參數
+    const FORM_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent('表單回覆 1')}`;
 
-        <div id="loading" class="loading">⏳ 正在載入最新會議紀錄，請稍候...</div>
-        <div id="noResult" class="no-result" style="display: none;">
-            <h3>😔 查無相關決議紀錄</h3>
-            <p style="margin-top: 0.5rem;">請嘗試換其他關鍵字搜尋。</p>
-        </div>
+    // ================= 2. 工具函數 =================
 
-        <div id="meetingList"></div>
-
-        <footer>
-            <p>社區管理委員會 製作發布</p>
-        </footer>
-
-    </div>
-
-    <!-- 右側滑出抽屜 (Drawer) -->
-    <div id="drawerOverlay" class="drawer-overlay" onclick="closeDrawer()"></div>
-    <div id="drawer" class="drawer">
-        <div class="drawer-header">
-            <h3 id="drawerTitle" class="drawer-title">會議紀錄詳情</h3>
-            <button class="close-btn" onclick="closeDrawer()">&times;</button>
-        </div>
-        <div class="drawer-body">
-            <div class="drawer-meta">
-                <span id="drawerDate"></span>
-                <a id="drawerExternalLink" href="#" target="_blank" class="external-link-btn" style="display: none;">↗ 在新分頁開啟 PDF</a>
-            </div>
-            <div id="pdfContainer" class="pdf-frame-container">
-                <iframe id="pdfFrame" src=""></iframe>
-            </div>
-            <div id="noPdfMsg" class="no-pdf-msg" style="display: none;">
-                📄 本場會議暫未上傳完整 PDF 檔案。
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const SHEET_ID = '1_idMkOxYS7Fwi0HZMfOXW4Ibmn4kJ7sIgPQuDlVIz88';
-        
-        // 抓取 1~59 次歷史紀錄（工作表名稱：歷史紀錄）
-        const HISTORICAL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=歷史紀錄`;
-        
-        // 抓取 60 次以後的表單回覆（工作表名稱：表單回覆 1）
-        const FORM_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=表單回覆 1`;
-
-        let rawMeetingsData = {};
-
-        // 解析 Google 試算表 JSON 資料
-        function parseJsonData(text) {
-            const json = JSON.parse(text.substring(47, text.length - 2));
-            return json.table.rows || [];
+    // 清除 Google Viz API 回傳字串前後的保護語法，轉為 JSON 物件
+    function parseGoogleResponse(responseText) {
+        if (!responseText) return null;
+        try {
+            const jsonString = responseText.replace(/^/*O_o*//\s*/, '').replace(/google\.visualization\.Query\.setResponse\((.*)\);?$/, '$1');
+            return JSON.parse(jsonString);
+        } catch (e) {
+            console.error("解析 Google 回傳 JSON 失敗：", e);
+            return null;
         }
+    }
 
-        // 同時獲取兩個工作表的資料並合併
-        Promise.all([
-            fetch(HISTORICAL_URL).then(res => res.text()).catch(() => null),
-            fetch(FORM_URL).then(res => res.text()).catch(() => null)
-        ]).then(([historyText, formText]) => {
-            const meetings = {};
+    // Google Drive 檔案連結優化（確保連結能在瀏覽器直接開啟檢視）
+    function formatPdfUrl(url) {
+        if (!url || typeof url !== 'string') return '';
+        let cleanUrl = url.trim();
+        
+        // 如果是 Google 表單自動填寫的 drive file/d/xxxx/view 格式，換成 preview 模式更順暢
+        if (cleanUrl.includes('drive.google.com') && cleanUrl.includes('/view')) {
+            cleanUrl = cleanUrl.replace('/view', '/preview');
+        }
+        return cleanUrl;
+    }
 
-            // 1. 處理 1~59 次歷史資料
-            if (historyText) {
-                const rows = parseJsonData(historyText);
-                rows.forEach(row => {
-                    if (!row.c || !row.c[0]) return;
-                    const title = row.c[0] ? row.c[0].v : '';
-                    const date = row.c[1] ? row.c[1].v : '';
-                    const tag = row.c[2] ? row.c[2].v : '決議';
-                    const content = row.c[3] ? row.c[3].v : '';
-                    const pdfUrl = (row.c[4] && row.c[4].v) ? row.c[4].v : '';
+    // ================= 3. 主資料抓取邏輯 =================
+    
+    Promise.all([
+        fetch(HISTORICAL_URL).then(res => res.text()).catch(err => { console.warn("歷史紀錄讀取失敗", err); return null; }),
+        fetch(FORM_URL).then(res => res.text()).catch(err => { console.warn("表單回覆讀取失敗", err); return null; })
+    ]).then(([historyText, formText]) => {
+        const meetings = {};
+        let totalLoadedCount = 0;
+
+        // --- 階段 A: 解析工作表 1 (1~59 次歷史紀錄) ---
+        // 欄位：A=會議名稱, B=會議日期, C=標籤, D=會議內容/摘要, E=PDF網址
+        if (historyText) {
+            const dataObj = parseGoogleResponse(historyText);
+            if (dataObj && dataObj.table && dataObj.table.rows) {
+                dataObj.table.rows.forEach(row => {
+                    if (!row.c || !row.c[0] || !row.c[0].v) return;
+
+                    const title = row.c[0].v.toString().trim();
+                    const date = row.c[1] && row.c[1].v ? row.c[1].v.toString() : '';
+                    const tag = row.c[2] && row.c[2].v ? row.c[2].v.toString() : '決議';
+                    const content = row.c[3] && row.c[3].v ? row.c[3].v.toString() : '';
+                    const pdfUrl = row.c[4] && row.c[4].v ? formatPdfUrl(row.c[4].v.toString()) : '';
 
                     if (!meetings[title]) {
                         meetings[title] = { date: date, pdfUrl: pdfUrl, items: [] };
                     }
-                    meetings[title].items.push({ tag: tag, content: content });
-                });
-            }
-
-            // 2. 處理 60 次以後的表單回覆資料
-            // 表單欄位：[0]時間戳記, [1]會議名稱, [2]日期, [3]摘要內容, [4]PDF連結
-            if (formText) {
-                const rows = parseJsonData(formText);
-                rows.forEach(row => {
-                    if (!row.c || !row.c[1]) return;
-                    const title = row.c[1] ? row.c[1].v : '';
-                    const date = row.c[2] ? row.c[2].v : '';
-                    const content = row.c[3] ? row.c[3].v : '';
-                    const pdfUrl = (row.c[4] && row.c[4].v) ? row.c[4].v : '';
-
-                    if (!meetings[title]) {
-                        meetings[title] = { date: date, pdfUrl: pdfUrl, items: [] };
+                    if (content) {
+                        meetings[title].items.push({ tag: tag, content: content });
                     }
-                    meetings[title].items.push({ tag: '決議摘要', content: content });
+                    totalLoadedCount++;
                 });
-            }
-
-            rawMeetingsData = meetings;
-            renderMeetings(meetings);
-            document.getElementById('loading').style.display = 'none';
-        }).catch(err => {
-            console.error(err);
-            document.getElementById('loading').innerHTML = '❌ 資料載入失敗，請確認工作表名稱與公開設定。';
-        });
-
-        // 渲染會議紀錄卡片
-        function renderMeetings(meetings) {
-            const container = document.getElementById('meetingList');
-            container.innerHTML = '';
-
-            for (const [title, data] of Object.entries(meetings)) {
-                const card = document.createElement('div');
-                card.className = 'meeting-card';
-
-                let listHtml = '';
-                data.items.forEach(item => {
-                    listHtml += `<li><span class="tag">${item.tag}</span><span class="content-text">${item.content}</span></li>`;
-                });
-
-                const safeTitle = title.replace(/'/g, "\\'");
-
-                card.innerHTML = `
-                    <div class="meeting-header">
-                        <div class="meeting-info">
-                            <span class="meeting-title">${title}</span>
-                            <span class="meeting-date">${data.date}</span>
-                        </div>
-                        <button class="view-pdf-btn" onclick="openDrawer('${safeTitle}')">📄 檢閱完整紀錄 (PDF)</button>
-                    </div>
-                    <div class="meeting-body">
-                        <ul>${listHtml}</ul>
-                    </div>
-                `;
-                container.appendChild(card);
             }
         }
 
-        // 開啟右側抽屜 (Drawer)
-        function openDrawer(title) {
-            const data = rawMeetingsData[title];
-            if (!data) return;
+        // --- 階段 B: 解析工作表 2 (60 次以後表單回覆 1) ---
+        // 欄位：A=時間戳記, B=會議抬頭, C=會議日期, D=標題, E=會議摘要, F=會議紀錄上傳, G=AppsScript備用PDF網址
+        if (formText) {
+            const dataObj = parseGoogleResponse(formText);
+            if (dataObj && dataObj.table && dataObj.table.rows) {
+                dataObj.table.rows.forEach(row => {
+                    if (!row.c || !row.c[1] || !row.c[1].v) return; // 沒有「會議抬頭」則跳過
 
-            document.getElementById('drawerTitle').innerText = title;
-            document.getElementById('drawerDate').innerText = '📅 會議日期：' + (data.date || '未提供');
+                    const title = row.c[1].v.toString().trim();                     // B 欄：會議抬頭
+                    const date = row.c[2] && row.c[2].v ? row.c[2].v.toString() : '';// C 欄：會議日期
+                    const tag = row.c[3] && row.c[3].v ? row.c[3].v.toString() : '摘要';// D 欄：標題
+                    const content = row.c[4] && row.c[4].v ? row.c[4].v.toString() : '';// E 欄：會議摘要
 
-            const pdfContainer = document.getElementById('pdfContainer');
-            const noPdfMsg = document.getElementById('noPdfMsg');
-            const pdfFrame = document.getElementById('pdfFrame');
-            const externalLink = document.getElementById('drawerExternalLink');
+                    // PDF 網址讀取邏輯：優先採用 F 欄（表單上傳），若為空則採用 G 欄（AppsScript 補入）
+                    let rawPdfUrl = '';
+                    if (row.c[5] && row.c[5].v) {
+                        rawPdfUrl = row.c[5].v.toString();
+                    } else if (row.c[6] && row.c[6].v) {
+                        rawPdfUrl = row.c[6].v.toString();
+                    }
+                    const pdfUrl = formatPdfUrl(rawPdfUrl);
 
-            if (data.pdfUrl && data.pdfUrl.trim() !== '') {
-                let embedUrl = data.pdfUrl.trim();
-                if (embedUrl.includes('drive.google.com')) {
-                    embedUrl = embedUrl.replace(/\/view.*$/, '/preview');
-                }
+                    if (!meetings[title]) {
+                        meetings[title] = { date: date, pdfUrl: pdfUrl, items: [] };
+                    } else {
+                        // 如果歷史紀錄中沒有 PDF 網址，但表單產生了，予以更新補齊
+                        if (!meetings[title].pdfUrl && pdfUrl) {
+                            meetings[title].pdfUrl = pdfUrl;
+                        }
+                    }
 
-                pdfFrame.src = embedUrl;
-                externalLink.href = data.pdfUrl;
-                externalLink.style.display = 'inline-block';
-                pdfContainer.style.display = 'block';
-                noPdfMsg.style.display = 'none';
+                    if (content) {
+                        meetings[title].items.push({ tag: tag, content: content });
+                    }
+                    totalLoadedCount++;
+                });
+            }
+        }
+
+        document.getElementById('loading').style.display = 'none';
+
+        if (Object.keys(meetings).length === 0) {
+            showError("未讀取到任何會議紀錄。請確認 Google 試算表權限已開啟為「知道連結的人皆可存取」，且工作表名稱設定正確。");
+            return;
+        }
+
+        renderMeetings(meetings);
+    }).catch(err => {
+        console.error("資料載入時發生錯誤：", err);
+        document.getElementById('loading').style.display = 'none';
+        showError("資料載入失敗，請檢查網路連線或試算表設定。");
+    });
+
+    // ================= 4. 畫面渲染畫面 =================
+    function renderMeetings(meetings) {
+        const container = document.getElementById('meetings-container');
+        container.innerHTML = '';
+
+        // 將會議名稱進行降冪排序 (讓最新的會議排在最前面)
+        const sortedTitles = Object.keys(meetings);
+
+        sortedTitles.forEach(title => {
+            const meeting = meetings[title];
+            const card = document.createElement('div');
+            card.className = 'meeting-card';
+
+            let pdfButtonHtml = '';
+            if (meeting.pdfUrl) {
+                pdfButtonHtml = `<a href="${meeting.pdfUrl}" target="_blank" class="pdf-btn">📄 查看完整紀錄 PDF</a>`;
+            }
+
+            let itemsHtml = '';
+            if (meeting.items && meeting.items.length > 0) {
+                itemsHtml = '<ul class="item-list">' + meeting.items.map(item => `
+                    <li class="item-row">
+                        <span class="item-tag">${escapeHtml(item.tag)}</span>
+                        <span class="item-content">${escapeHtml(item.content)}</span>
+                    </li>
+                `).join('') + '</ul>';
             } else {
-                pdfFrame.src = '';
-                externalLink.style.display = 'none';
-                pdfContainer.style.display = 'none';
-                noPdfMsg.style.display = 'block';
+                itemsHtml = '<p style="color: #999; font-style: italic;">（無詳細決議摘要）</p>';
             }
 
-            document.getElementById('drawer').classList.add('open');
-            document.getElementById('drawerOverlay').classList.add('open');
-        }
+            card.innerHTML = `
+                <div class="meeting-header">
+                    <div>
+                        <h2 class="meeting-title">${escapeHtml(title)}</h2>
+                        <div class="meeting-date">🗓️ 開會日期：${escapeHtml(meeting.date || '未提供')}</div>
+                    </div>
+                    <div>${pdfButtonHtml}</div>
+                </div>
+                ${itemsHtml}
+            `;
 
-        // 關閉右側抽屜
-        function closeDrawer() {
-            document.getElementById('drawer').classList.remove('open');
-            document.getElementById('drawerOverlay').classList.remove('open');
-            document.getElementById('pdfFrame').src = '';
-        }
+            container.appendChild(card);
+        });
+    }
 
-        // 搜尋功能
-        function filterContent() {
-            var input = document.getElementById('searchInput').value.toLowerCase().trim();
-            var cards = document.getElementsByClassName('meeting-card');
-            var hasVisible = false;
+    function showError(msg) {
+        const errorDiv = document.getElementById('error-container');
+        errorDiv.innerHTML = `<div class="error-msg">⚠️ ${msg}</div>`;
+    }
 
-            for (var i = 0; i < cards.length; i++) {
-                var cardText = cards[i].innerText.toLowerCase();
-                if (cardText.includes(input)) {
-                    cards[i].style.display = "";
-                    hasVisible = true;
-                } else {
-                    cards[i].style.display = "none";
-                }
-            }
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+</script>
 
-            var noResult = document.getElementById('noResult');
-            noResult.style.display = hasVisible ? "none" : "block";
-        }
-
-        function clearSearch() {
-            document.getElementById('searchInput').value = '';
-            filterContent();
-        }
-    </script>
 </body>
 </html>
