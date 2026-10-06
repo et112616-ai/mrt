@@ -199,18 +199,17 @@
 
 <script>
 
-    // ================= 1. 設定區域（改為支援兩份獨立的試算表 ID） =================
+     // ================= 1. 設定區域 =================
     
-        // 1. 宣告全域變數存放會議資料
-        let globalMeetings = {};
+          // 1. 宣告全域變數存放會議資料
+          let globalMeetings = {};
 
-        // 2. 試算表 ID 設定
-        const HISTORY_SPREADSHEET_ID = '1TziBWbOghOO7UHj_Pg5R4OfWM442_qYnOdoCALRY5Tg';
-        const FORM_SPREADSHEET_ID = '1_bREXnxsJrbAo2aPz_UmcKNASL1lwiBEo5GyOFWC74E';
-
-        // 3. 確保使用「反引號 (`)」包覆，這樣 ${...} 變數才能正確代入
-        const HISTORICAL_URL = `https://docs.google.com/spreadsheets/d/{HISTORY_SPREADSHEET_ID}/gviz/tq?tqx=out:json&`;
-        const FORM_URL = `https://docs.google.com/spreadsheets/d/{FORM_SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
+        // 2. 直接將網址寫死，避開任何變數解析錯誤的問題！
+        // 歷史紀錄試算表 (請確認您的歷史紀錄是在「第一個工作表」，如果是其他名稱請把 gid=0 改掉，或確保第一個分頁就是要抓的資料)
+        const HISTORICAL_URL = `https://docs.google.com/spreadsheets/d/1TziBWbOghOO7UHj_Pg5R4OfWM442_qYnOdoCALRY5Tg/gviz/tq?tqx=out:json&gid=0`;
+    
+        // 表單回覆試算表 (請確保這是您的表單回覆試算表 ID，同樣用 gid=0抓取第一個工作表)
+        const FORM_URL = `https://docs.google.com/spreadsheets/d/1_bREXnxsJrbAo2aPz_UmcKNASL1lwiBEo5GyOFWC74E/gviz/tq?tqx=out:json&gid=0`;
 
     // ================= 2. 工具函數 =================
     function parseGoogleResponse(responseText) {
