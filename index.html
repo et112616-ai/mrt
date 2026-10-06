@@ -198,21 +198,19 @@
 </div>
 
 <script>
-    // ================= 1. 設定區域 =================
+
     // ================= 1. 設定區域（改為支援兩份獨立的試算表 ID） =================
     
-        // 1. 歷史紀錄的 Google 試算表 ID
+        // 1. 宣告全域變數存放會議資料
+        let globalMeetings = {};
+
+        // 2. 試算表 ID 設定
         const HISTORY_SPREADSHEET_ID = '1TziBWbOghOO7UHj_Pg5R4OfWM442_qYnOdoCALRY5Tg';
-    
-        // 2. 表單回覆的 Google 試算表 ID
         const FORM_SPREADSHEET_ID = '1_bREXnxsJrbAo2aPz_UmcKNASL1lwiBEo5GyOFWC74E';
-    
-        // 對應的 API 網址（修正模板字串語法）
+
+        // 3. 確保使用「反引號 (`)」包覆，這樣 ${...} 變數才能正確代入
         const HISTORICAL_URL = `https://docs.google.com/spreadsheets/d/\({HISTORY_SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=\){encodeURIComponent('歷史紀錄')}`;
-    
-        const FORM_URL = `https://docs.google.com/spreadsheets/d/${FORM_SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
-    // 另外，還需要宣告一個全域變數來存放合併後的會議資料（原本程式碼漏宣告了這個變數）
-    let globalMeetings = {};
+        const FORM_URL = `https://docs.google.com/spreadsheets/d/\({FORM_SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=\){encodeURIComponent('表單回覆 1')}`;
 
     // ================= 2. 工具函數 =================
     function parseGoogleResponse(responseText) {
