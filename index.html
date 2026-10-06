@@ -281,11 +281,16 @@
                 dataObj.table.rows.forEach(row => {
                     if (!row.c) return;
 
+                    // 假設會議名稱在第 1 欄 (row.c[1])，若無則抓第 0 欄
                     const titleRaw = (row.c[1] && row.c[1].v) ? row.c[1].v : (row.c[0] && row.c[0].v ? row.c[0].v : null);
                     if (!titleRaw) return;
 
                     const title = titleRaw.toString().trim();
-                    const date = row.c[2] && row.c[2].v ? row.c[2].v.toString() : '';
+                    
+                    // 【修正 1】檢查表單回覆的日期欄位到底是哪一欄！
+                    // 假設您的表單中，開會日期在第 2 欄 (row.c[2])。如果該格有值才抓取。
+                    const formDate = row.c[2] && row.c[2].v ? row.c[2].v.toString() : '';
+                    
                     const tag = row.c[3] && row.c[3].v ? row.c[3].v.toString() : '摘要';
                     const content = row.c[4] && row.c[4].v ? row.c[4].v.toString() : '';
 
@@ -296,10 +301,19 @@
 
                     const pdfUrl = formatPdfUrl(rawPdfUrl);
 
+                    // 【修正 2】防呆保護：如果這個會議標題還不存在，才新增一個
                     if (!globalMeetings[title]) {
-                        globalMeetings[title] = { date: date, pdfUrl: pdfUrl, items: [] };
-                    } else if (!globalMeetings[title].pdfUrl && pdfUrl) {
-                        globalMeetings[title].pdfUrl = pdfUrl;
+                        globalMeetings[title] = { date: formDate, pdfUrl: pdfUrl, items: [] };
+                    } else {
+                        // 如果已經存在（例如從歷史紀錄讀進來了），絕對不要被表單的空日期或錯誤日期覆蓋！
+                        // 只有當原本沒有日期，且表單有提供日期時才補上
+                        if (!globalMeetings[title].date && formDate) {
+                            globalMeetings[title].date = formDate;
+                        }
+                        // 補充 PDF 連結
+                        if (!globalMeetings[title].pdfUrl && pdfUrl) {
+                            globalMeetings[title].pdfUrl = pdfUrl;
+                        }
                     }
 
                     if (content) {
