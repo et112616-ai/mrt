@@ -214,12 +214,21 @@
     // ================= 2. 工具函數 =================
     function parseGoogleResponse(text) {
         try {
-            // 1. 移除 Google gviz 帶有的防護字串與函數包裝
-            // 這會把前半部的 "/*O_o*/\ngoogle.visualization.Query.setResponse(" 
-            // 以及結尾的 ");" 給清掉
-            const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf(')') + 1);
+            // 1. 尋找真正的 JSON 起始點：第一個 '{'
+            const startIndex = text.indexOf('{');
         
-            // 2. 轉換為真正的 JavaScript 物件
+            // 2. 尋找真正的 JSON 結束點：倒數第二個 '}' (因為結尾通常是 }); )
+            // 我們用 lastIndexOf 找最後一個 '}'，確保完整包住主體
+            const endIndex = text.lastIndexOf('}');
+        
+            if (startIndex === -1 || endIndex === -1) {
+                throw new Error("找不到有效的 JSON 結構");
+            }
+
+            // 3. 精準切出大括號內部的純 JSON 字串（含頭尾的大括號）
+            const jsonString = text.substring(startIndex, endIndex + 1);
+        
+            // 4. 解析
             return JSON.parse(jsonString);
         } catch (error) {
             console.error("解析 Google JSON 失敗細節：", error, text);
