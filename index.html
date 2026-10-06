@@ -212,14 +212,18 @@
         const FORM_URL = `https://docs.google.com/spreadsheets/d/1_bREXnxsJrbAo2aPz_UmcKNASL1lwiBEo5GyOFWC74E/gviz/tq?tqx=out:json&gid=0`;
 
     // ================= 2. 工具函數 =================
-    function parseGoogleResponse(responseText) {
-        if (!responseText) return null;
+    function parseGoogleResponse(text) {
         try {
-            const jsonString = responseText.replace(/^[^\n]*?google\.visualization\.Query\.setResponse\(/, '').replace(/\);?\s*$/, '');
+            // 1. 移除 Google gviz 帶有的防護字串與函數包裝
+            // 這會把前半部的 "/*O_o*/\ngoogle.visualization.Query.setResponse(" 
+            // 以及結尾的 ");" 給清掉
+            const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf(')') + 1);
+        
+            // 2. 轉換為真正的 JavaScript 物件
             return JSON.parse(jsonString);
-        } catch (e) {
-            console.error("解析 Google JSON 失敗：", e);
-            return null;
+        } catch (error) {
+            console.error("解析 Google JSON 失敗細節：", error, text);
+            throw error;
         }
     }
 
