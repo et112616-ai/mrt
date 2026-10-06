@@ -199,16 +199,18 @@
 
 <script>
     // ================= 1. 設定區域 =================
-    const SPREADSHEET_ID = '1TziBWbOghOO7UHj_Pg5R4OfWM442_qYnOdoCALRY5Tg';
+    // ================= 1. 設定區域（改為支援兩份獨立的試算表 ID） =================
     
-    // 工作表1（歷史紀錄）
-    const HISTORICAL_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent('歷史紀錄')}`;
+        // 1. 歷史紀錄的 Google 試算表 ID
+        const HISTORY_SPREADSHEET_ID = '1TziBWbOghOO7UHj_Pg5R4OfWM442_qYnOdoCALRY5Tg';
     
-    // 工作表2（表單回覆 1）
-    const FORM_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent('表單回覆 1')}`;
-
-    // 全域變數存放快取的會議資料
-    let globalMeetings = {};
+        // 2. 表單回覆的 Google 試算表 ID（如果您開了新的，請填入新的 ID）
+        const FORM_SPREADSHEET_ID = '1_bREXnxsJrbAo2aPz_UmcKNASL1lwiBEo5GyOFWC74E';
+    
+        // 對應的 API 網址（因為是獨立的試算表，預設通常是第一個工作表，或指定名稱）
+        const HISTORICAL_URL = `https://docs.google.com/spreadsheets/d/\({HISTORY_SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=\){encodeURIComponent('歷史紀錄')}`;
+    
+        const FORM_URL = `https://docs.google.com/spreadsheets/d/${FORM_SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
 
     // ================= 2. 工具函數 =================
     function parseGoogleResponse(responseText) {
