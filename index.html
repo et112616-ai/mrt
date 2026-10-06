@@ -197,258 +197,1070 @@
     <div id="meetings-container"></div>
 </div>
 
+```html
 <script>
 
-     // ================= 1. 設定區域 =================
-    
-          // 1. 宣告全域變數存放會議資料
-          let globalMeetings = {};
+    // ============================================================
+    // 1. 全域資料
+    // ============================================================
 
-        // 2. 直接將網址寫死，避開任何變數解析錯誤的問題！
-        // 歷史紀錄試算表 (請確認您的歷史紀錄是在「第一個工作表」，如果是其他名稱請把 gid=0 改掉，或確保第一個分頁就是要抓的資料)
-        const HISTORICAL_URL = `https://docs.google.com/spreadsheets/d/1TziBWbOghOO7UHj_Pg5R4OfWM442_qYnOdoCALRY5Tg/gviz/tq?tqx=out:json&gid=0`;
-    
-        // 表單回覆試算表 (請確保這是您的表單回覆試算表 ID，同樣用 gid=0抓取第一個工作表)
-        const FORM_URL = `https://docs.google.com/spreadsheets/d/1_bREXnxsJrbAo2aPz_UmcKNASL1lwiBEo5GyOFWC74E/gviz/tq?tqx=out:json&gid=0`;
+    let globalMeetings = {};
 
-    // ================= 2. 工具函數 =================
+    // 歷史紀錄試算表
+    const HISTORICAL_URL =
+        `https://docs.google.com/spreadsheets/d/1TziBWbOghOO7UHj_Pg5R4OfWM442_qYnOdoCALRY5Tg/gviz/tq?tqx=out:json&gid=0`;
+
+    // 表單回覆試算表
+    const FORM_URL =
+        `https://docs.google.com/spreadsheets/d/1_bREXnxsJrbAo2aPz_UmcKNASL1lwiBEo5GyOFWC74E/gviz/tq?tqx=out:json&gid=0`;
+
+
+    // ============================================================
+    // 2. Google GViz JSON 解析
+    // ============================================================
+
     function parseGoogleResponse(text) {
+
         try {
-            // 1. 尋找真正的 JSON 起始點：第一個 '{'
+
             const startIndex = text.indexOf('{');
-        
-            // 2. 尋找真正的 JSON 結束點：倒數第二個 '}' (因為結尾通常是 }); )
-            // 我們用 lastIndexOf 找最後一個 '}'，確保完整包住主體
             const endIndex = text.lastIndexOf('}');
-        
+
             if (startIndex === -1 || endIndex === -1) {
                 throw new Error("找不到有效的 JSON 結構");
             }
 
-            // 3. 精準切出大括號內部的純 JSON 字串（含頭尾的大括號）
-            const jsonString = text.substring(startIndex, endIndex + 1);
-        
-            // 4. 解析
+            const jsonString =
+                text.substring(startIndex, endIndex + 1);
+
             return JSON.parse(jsonString);
+
         } catch (error) {
-            console.error("解析 Google JSON 失敗細節：", error, text);
+
+            console.error(
+                "❌ 解析 Google JSON 失敗：",
+                error,
+                text
+            );
+
             throw error;
         }
     }
 
+
+    // ============================================================
+    // 3. PDF URL 處理
+    // ============================================================
+
     function formatPdfUrl(url) {
-        if (!url || typeof url !== 'string') return '';
-        let cleanUrl = url.trim();
-        if (cleanUrl.includes('drive.google.com') && cleanUrl.includes('/view')) {
-            cleanUrl = cleanUrl.replace('/view', '/preview');
+
+        if (!url || typeof url !== 'string') {
+            return '';
         }
+
+        let cleanUrl = url.trim();
+
+        if (
+            cleanUrl.includes('drive.google.com') &&
+            cleanUrl.includes('/view')
+        ) {
+            cleanUrl =
+                cleanUrl.replace('/view', '/preview');
+        }
+
         return cleanUrl;
     }
 
-    // ================= 3. 資料抓取與處理 =================
-    Promise.all([
-        fetch(HISTORICAL_URL).then(res => res.text()).catch(err => { console.warn("歷史紀錄 API 存取失敗", err); return null; }),
-        fetch(FORM_URL).then(res => res.text()).catch(err => { console.warn("表單回覆 API 存取失敗", err); return null; })
-    ]).then(([historyText, formText]) => {
-        
-        // --- 階段 A: 處理「歷史紀錄」 ---
-        if (historyText) {
-            const dataObj = parseGoogleResponse(historyText);
-            if (dataObj && dataObj.table && dataObj.table.rows) {
-                dataObj.table.rows.forEach(row => {
-                    if (!row.c || !row.c[0] || !row.c[0].v) return;
 
-                    const title = row.c[0].v.toString().trim();
-                    const date = row.c[1] && row.c[1].v ? row.c[1].v.toString() : '';
-                    const tag = row.c[2] && row.c[2].v ? row.c[2].v.toString() : '決議';
-                    const content = row.c[3] && row.c[3].v ? row.c[3].v.toString() : '';
-                    const pdfUrl = row.c[4] && row.c[4].v ? formatPdfUrl(row.c[4].v.toString()) : '';
+    // ============================================================
+    // 4. 統一清理文字
+    // ============================================================
 
-                    if (!globalMeetings[title]) {
-                        globalMeetings[title] = { date: date, pdfUrl: pdfUrl, items: [] };
-                    }
-                    if (content) {
-                        globalMeetings[title].items.push({ tag: tag, content: content });
-                    }
-                });
-            }
+    function cleanText(value) {
+
+        if (value === null || value === undefined) {
+            return '';
         }
 
-        // --- 階段 B: 處理「表單回覆 1」 ---
-        if (formText) {
-            const dataObj = parseGoogleResponse(formText);
-            if (dataObj && dataObj.table && dataObj.table.rows) {
-                dataObj.table.rows.forEach((row, index) => {
-                    if (!row.c) return;
+        return String(value)
+            .replace(/\u00A0/g, ' ')
+            .trim();
+    }
 
-                    // 🔍 【偵錯用】把表單每一欄的內容印出來看，請按 F12 在主控台檢查
-                    console.log(`表單第 ${index + 1} 列資料：`, row.c.map(cell => cell ? cell.v : '空白'));
 
-                    // ⚠️ 注意：這裡的欄位數字 (c[1], c[2]...) 必須依照您 Google 表單的「問題順序」來決定！
-                    // 假設您的表單中：
-                    // 第 1 個問題是「會議名稱」 -> 對應 row.c[1] (如果時間戳記是 c[0])
-                    // 第 2 個問題是「開會日期」 -> 對應 row.c[2]
-                    // 第 3 個問題是「標籤」     -> 對應 row.c[3]
-                    // 第 4 個問題是「決議內容」 -> 對應 row.c[4]
+    // ============================================================
+    // 5. 建立一筆會議資料
+    // ============================================================
 
-                    const titleRaw = row.c[1] && row.c[1].v ? row.c[1].v : null;
-                    if (!titleRaw) return;
+    function createMeeting(date, pdfUrl) {
 
-                    const title = titleRaw.toString().trim();
-                    const formDate = row.c[2] && row.c[2].v ? row.c[2].v.toString() : '';
-                    const tag = row.c[3] && row.c[3].v ? row.c[3].v.toString() : '摘要';
-                    const content = row.c[4] && row.c[4].v ? row.c[4].v.toString() : '';
+        return {
+            date: cleanText(date),
+            pdfUrl: cleanText(pdfUrl),
+            items: []
+        };
+    }
 
-                    let rawPdfUrl = '';
-                    if (row.c[5] && row.c[5].v) rawPdfUrl = row.c[5].v.toString();
-                    else if (row.c[6] && row.c[6].v) rawPdfUrl = row.c[6].v.toString();
-                    else if (row.c[7] && row.c[7].v) rawPdfUrl = row.c[7].v.toString();
 
-                    const pdfUrl = formatPdfUrl(rawPdfUrl);
+    // ============================================================
+    // 6. 新增會議項目
+    // ============================================================
 
-                    // 核心邏輯：如果這個會議名稱已經存在（例如歷史紀錄有了），我們只「追加」決議內容與 PDF，絕對不蓋掉歷史紀錄的日期！
-                    if (!globalMeetings[title]) {
-                        globalMeetings[title] = { date: formDate, pdfUrl: pdfUrl, items: [] };
-                    } else {
-                        // 如果歷史紀錄已經有日期了，以歷史紀錄為主；若歷史沒日期才用表單日期
-                        if (!globalMeetings[title].date && formDate) {
-                            globalMeetings[title].date = formDate;
-                        }
-                        if (!globalMeetings[title].pdfUrl && pdfUrl) {
-                            globalMeetings[title].pdfUrl = pdfUrl;
-                        }
-                    }
+    function addMeetingItem(meeting, tag, content) {
 
-                    if (content) {
-                        globalMeetings[title].items.push({ tag: tag, content: content });
-                    }
-                });
-            }
-        }
+        tag = cleanText(tag);
+        content = cleanText(content);
 
-        document.getElementById('loading').style.display = 'none';
-
-        if (Object.keys(globalMeetings).length === 0) {
-            showError("未讀取到任何會議紀錄。請確認 Google 試算表權限已設為「知道連結的人皆可檢視」，且工作表名稱設定正確。");
+        if (!content) {
             return;
         }
 
-        // 綁定搜尋與排序監聽事件
-        document.getElementById('search-input').addEventListener('input', applyFilterAndRender);
-        document.getElementById('sort-select').addEventListener('change', applyFilterAndRender);
+        meeting.items.push({
+            tag: tag || '決議',
+            content: content
+        });
+    }
 
-        // 初次渲染畫面
+
+    // ============================================================
+    // 7. A：歷史紀錄
+    //
+    // ★ 重要：
+    // A 是歷史資料，因此 A 的日期具有最高優先權。
+    // ============================================================
+
+    function processHistoricalData(historyText) {
+
+        if (!historyText) {
+            console.warn("⚠️ A：歷史紀錄沒有資料");
+            return;
+        }
+
+        const dataObj =
+            parseGoogleResponse(historyText);
+
+        if (
+            !dataObj ||
+            !dataObj.table ||
+            !dataObj.table.rows
+        ) {
+            console.warn("⚠️ A：找不到 table.rows");
+            return;
+        }
+
+
+        dataObj.table.rows.forEach((row, index) => {
+
+            if (!row.c) {
+                return;
+            }
+
+
+            const title =
+                cleanText(
+                    row.c[0] && row.c[0].v
+                        ? row.c[0].v
+                        : ''
+                );
+
+            if (!title) {
+                console.warn(
+                    `⚠️ A 第 ${index + 1} 列沒有會議名稱`
+                );
+                return;
+            }
+
+
+            const date =
+                cleanText(
+                    row.c[1] && row.c[1].v
+                        ? row.c[1].v
+                        : ''
+                );
+
+
+            const tag =
+                cleanText(
+                    row.c[2] && row.c[2].v
+                        ? row.c[2].v
+                        : '決議'
+                );
+
+
+            const content =
+                cleanText(
+                    row.c[3] && row.c[3].v
+                        ? row.c[3].v
+                        : ''
+                );
+
+
+            const pdfUrl =
+                formatPdfUrl(
+                    row.c[4] && row.c[4].v
+                        ? row.c[4].v
+                        : ''
+                );
+
+
+            console.log(
+                `📘 A 歷史資料 ${index + 1}`,
+                {
+                    title,
+                    date,
+                    tag,
+                    content,
+                    pdfUrl
+                }
+            );
+
+
+            // ----------------------------------------------------
+            // A 的資料建立
+            // ----------------------------------------------------
+
+            if (!globalMeetings[title]) {
+
+                globalMeetings[title] =
+                    createMeeting(date, pdfUrl);
+
+                // 標記這筆資料的日期來自 A
+                globalMeetings[title].dateSource = 'A';
+
+            } else {
+
+                const meeting =
+                    globalMeetings[title];
+
+
+                // ------------------------------------------------
+                // 如果 A 自己又出現同一個會議名稱
+                // ------------------------------------------------
+
+                if (
+                    meeting.date &&
+                    date &&
+                    meeting.date !== date
+                ) {
+
+                    console.warn(
+                        `⚠️ A 發現同名會議但日期不同！`,
+                        {
+                            title,
+                            原日期: meeting.date,
+                            新日期: date
+                        }
+                    );
+
+                    // A 本身也出現衝突時：
+                    // 保留第一筆 A 日期
+                    console.warn(
+                        `⚠️ 已保留第一筆 A 日期：${meeting.date}`
+                    );
+
+                } else if (
+                    !meeting.date &&
+                    date
+                ) {
+
+                    meeting.date = date;
+                    meeting.dateSource = 'A';
+                }
+
+
+                // PDF 也是 A 優先
+                if (
+                    !meeting.pdfUrl &&
+                    pdfUrl
+                ) {
+                    meeting.pdfUrl = pdfUrl;
+                }
+            }
+
+
+            // 加入決議內容
+            addMeetingItem(
+                globalMeetings[title],
+                tag,
+                content
+            );
+
+        });
+
+
+        console.log(
+            '✅ A 歷史資料處理完成，目前會議數：',
+            Object.keys(globalMeetings).length
+        );
+    }
+
+
+    // ============================================================
+    // 8. B：表單回覆
+    //
+    // ★ 重要：
+    // B 絕對不覆蓋 A 的日期。
+    // ============================================================
+
+    function processFormData(formText) {
+
+        if (!formText) {
+            console.warn("⚠️ B：表單資料沒有取得");
+            return;
+        }
+
+
+        const dataObj =
+            parseGoogleResponse(formText);
+
+
+        if (
+            !dataObj ||
+            !dataObj.table ||
+            !dataObj.table.rows
+        ) {
+            console.warn("⚠️ B：找不到 table.rows");
+            return;
+        }
+
+
+        dataObj.table.rows.forEach((row, index) => {
+
+            if (!row.c) {
+                return;
+            }
+
+
+            // ----------------------------------------------------
+            // 偵錯：完整列出 B 的實際資料
+            // ----------------------------------------------------
+
+            const debugRow =
+                row.c.map(
+                    cell =>
+                        cell
+                            ? cell.v
+                            : '空白'
+                );
+
+
+            console.log(
+                `📋 B 表單第 ${index + 1} 列：`,
+                debugRow
+            );
+
+
+            // ----------------------------------------------------
+            // B 欄位
+            //
+            // c[0] = 時間戳記
+            // c[1] = 會議名稱
+            // c[2] = 開會日期
+            // c[3] = 標籤
+            // c[4] = 決議內容
+            // c[5] / c[6] / c[7] = PDF
+            // ----------------------------------------------------
+
+
+            const title =
+                cleanText(
+                    row.c[1] && row.c[1].v
+                        ? row.c[1].v
+                        : ''
+                );
+
+
+            if (!title) {
+
+                console.warn(
+                    `⚠️ B 第 ${index + 1} 列沒有會議名稱，略過`
+                );
+
+                return;
+            }
+
+
+            const formDate =
+                cleanText(
+                    row.c[2] && row.c[2].v
+                        ? row.c[2].v
+                        : ''
+                );
+
+
+            const tag =
+                cleanText(
+                    row.c[3] && row.c[3].v
+                        ? row.c[3].v
+                        : '摘要'
+                );
+
+
+            const content =
+                cleanText(
+                    row.c[4] && row.c[4].v
+                        ? row.c[4].v
+                        : ''
+                );
+
+
+            let rawPdfUrl = '';
+
+
+            if (
+                row.c[5] &&
+                row.c[5].v
+            ) {
+
+                rawPdfUrl =
+                    row.c[5].v;
+
+            } else if (
+                row.c[6] &&
+                row.c[6].v
+            ) {
+
+                rawPdfUrl =
+                    row.c[6].v;
+
+            } else if (
+                row.c[7] &&
+                row.c[7].v
+            ) {
+
+                rawPdfUrl =
+                    row.c[7].v;
+            }
+
+
+            const pdfUrl =
+                formatPdfUrl(rawPdfUrl);
+
+
+            console.log(
+                `📋 B 解析結果 ${index + 1}`,
+                {
+                    title,
+                    formDate,
+                    tag,
+                    content,
+                    pdfUrl
+                }
+            );
+
+
+            // ====================================================
+            // ★★★ 核心防呆 ★★★
+            // ====================================================
+
+
+            // ----------------------------------------------------
+            // 情況 1：
+            // A、B 都沒有這個會議
+            // → 建立 B
+            // ----------------------------------------------------
+
+            if (!globalMeetings[title]) {
+
+                globalMeetings[title] =
+                    createMeeting(
+                        formDate,
+                        pdfUrl
+                    );
+
+                globalMeetings[title].dateSource = 'B';
+
+
+                console.log(
+                    `🟢 B 建立新會議：${title}`,
+                    formDate
+                );
+
+            }
+
+            // ----------------------------------------------------
+            // 情況 2：
+            // A 已經有這個會議
+            // ----------------------------------------------------
+
+            else {
+
+                const meeting =
+                    globalMeetings[title];
+
+
+                // -----------------------------------------------
+                // A 已經有日期
+                // -----------------------------------------------
+
+                if (
+                    meeting.date &&
+                    meeting.dateSource === 'A'
+                ) {
+
+                    // 如果 B 日期跟 A 不同
+                    if (
+                        formDate &&
+                        meeting.date !== formDate
+                    ) {
+
+                        console.warn(
+                            `🚨🚨 日期衝突！B 不得覆蓋 A`,
+                            {
+                                會議名稱: title,
+                                A日期: meeting.date,
+                                B日期: formDate
+                            }
+                        );
+
+                    }
+
+                    // ★ 什麼都不做
+                    // ★ A 日期永久保留
+                }
+
+
+                // -----------------------------------------------
+                // A 有資料但沒有日期
+                // -----------------------------------------------
+
+                else if (
+                    !meeting.date &&
+                    formDate
+                ) {
+
+                    meeting.date =
+                        formDate;
+
+                    meeting.dateSource =
+                        'B';
+
+                    console.log(
+                        `🟡 A 沒有日期，採用 B 日期：${title}`,
+                        formDate
+                    );
+                }
+
+
+                // -----------------------------------------------
+                // 如果之前這筆就是 B 建立的
+                // -----------------------------------------------
+
+                else if (
+                    meeting.dateSource === 'B'
+                ) {
+
+                    // B 自己再次出現同一會議
+                    if (
+                        formDate &&
+                        meeting.date &&
+                        meeting.date !== formDate
+                    ) {
+
+                        console.warn(
+                            `⚠️ B 發現同名會議日期不同`,
+                            {
+                                會議名稱: title,
+                                原日期: meeting.date,
+                                新日期: formDate
+                            }
+                        );
+
+                        // 保留第一筆
+                    }
+                }
+
+
+                // -----------------------------------------------
+                // PDF
+                // -----------------------------------------------
+
+                if (
+                    !meeting.pdfUrl &&
+                    pdfUrl
+                ) {
+
+                    meeting.pdfUrl =
+                        pdfUrl;
+                }
+            }
+
+
+            // ----------------------------------------------------
+            // 加入 B 的決議內容
+            // ----------------------------------------------------
+
+            addMeetingItem(
+                globalMeetings[title],
+                tag,
+                content
+            );
+
+        });
+
+
+        console.log(
+            '✅ B 表單資料處理完成，目前會議數：',
+            Object.keys(globalMeetings).length
+        );
+    }
+
+
+    // ============================================================
+    // 9. 開始抓取兩份資料
+    // ============================================================
+
+    Promise.all([
+
+        fetch(HISTORICAL_URL)
+            .then(res => res.text())
+            .catch(err => {
+
+                console.warn(
+                    "❌ A 歷史紀錄 API 存取失敗",
+                    err
+                );
+
+                return null;
+            }),
+
+
+        fetch(FORM_URL)
+            .then(res => res.text())
+            .catch(err => {
+
+                console.warn(
+                    "❌ B 表單回覆 API 存取失敗",
+                    err
+                );
+
+                return null;
+            })
+
+    ])
+
+    .then(([historyText, formText]) => {
+
+
+        // ========================================================
+        // ★★★ 明確指定處理順序 ★★★
+        //
+        // 不再讓 Promise 的完成順序影響資料。
+        //
+        // 先 A，再 B。
+        // ========================================================
+
+        console.log(
+            '=============================='
+        );
+
+        console.log(
+            '🚀 開始處理 A：歷史紀錄'
+        );
+
+        processHistoricalData(
+            historyText
+        );
+
+
+        console.log(
+            '=============================='
+        );
+
+        console.log(
+            '🚀 開始處理 B：表單資料'
+        );
+
+        processFormData(
+            formText
+        );
+
+
+        console.log(
+            '=============================='
+        );
+
+        console.log(
+            '✅ A + B 全部處理完成'
+        );
+
+        console.log(
+            '目前全部會議：',
+            globalMeetings
+        );
+
+
+        // ========================================================
+        // 完成載入
+        // ========================================================
+
+        document.getElementById(
+            'loading'
+        ).style.display = 'none';
+
+
+        if (
+            Object.keys(globalMeetings).length === 0
+        ) {
+
+            showError(
+                "未讀取到任何會議紀錄。請確認 Google 試算表權限已設為「知道連結的人皆可檢視」，且工作表名稱設定正確。"
+            );
+
+            return;
+        }
+
+
+        // 搜尋
+        document.getElementById(
+            'search-input'
+        ).addEventListener(
+            'input',
+            applyFilterAndRender
+        );
+
+
+        // 排序
+        document.getElementById(
+            'sort-select'
+        ).addEventListener(
+            'change',
+            applyFilterAndRender
+        );
+
+
+        // 第一次顯示
         applyFilterAndRender();
 
-    }).catch(err => {
-        console.error("載入失敗：", err);
-        document.getElementById('loading').style.display = 'none';
-        showError("資料載入失敗，請檢查網路連線或試算表權限。");
+    })
+
+
+    .catch(err => {
+
+        console.error(
+            "❌ 載入失敗：",
+            err
+        );
+
+
+        document.getElementById(
+            'loading'
+        ).style.display = 'none';
+
+
+        showError(
+            "資料載入失敗，請檢查網路連線或試算表權限。"
+        );
+
     });
 
-    // ================= 4. 搜尋篩選與排序邏輯 =================
+
+    // ============================================================
+    // 10. 搜尋與排序
+    // ============================================================
+
     function applyFilterAndRender() {
-        const keyword = document.getElementById('search-input').value.trim().toLowerCase();
-        const sortOrder = document.getElementById('sort-select').value;
+
+        const keyword =
+            document.getElementById(
+                'search-input'
+            ).value
+            .trim()
+            .toLowerCase();
+
+
+        const sortOrder =
+            document.getElementById(
+                'sort-select'
+            ).value;
+
 
         const filteredMeetings = {};
 
-        // 進行模糊比對（搜尋：會議名稱、日期、標籤、決議內容）
-        Object.keys(globalMeetings).forEach(title => {
-            const meeting = globalMeetings[title];
-            
-            const matchTitle = title.toLowerCase().includes(keyword);
-            const matchDate = meeting.date.toLowerCase().includes(keyword);
-            const matchItems = meeting.items.some(item => 
-                item.tag.toLowerCase().includes(keyword) || 
-                item.content.toLowerCase().includes(keyword)
-            );
 
-            if (!keyword || matchTitle || matchDate || matchItems) {
-                filteredMeetings[title] = meeting;
+        Object.keys(
+            globalMeetings
+        ).forEach(title => {
+
+            const meeting =
+                globalMeetings[title];
+
+
+            const matchTitle =
+                title
+                    .toLowerCase()
+                    .includes(keyword);
+
+
+            const matchDate =
+                String(meeting.date || '')
+                    .toLowerCase()
+                    .includes(keyword);
+
+
+            const matchItems =
+                meeting.items.some(item =>
+
+                    String(item.tag || '')
+                        .toLowerCase()
+                        .includes(keyword)
+
+                    ||
+
+                    String(item.content || '')
+                        .toLowerCase()
+                        .includes(keyword)
+                );
+
+
+            if (
+                !keyword ||
+                matchTitle ||
+                matchDate ||
+                matchItems
+            ) {
+
+                filteredMeetings[title] =
+                    meeting;
             }
+
         });
 
-        // 排序處理：優先依照 date 欄位比較，若無日期則依會議名稱標題比較
-        let sortedTitles = Object.keys(filteredMeetings).sort((a, b) => {
-            const dateA = filteredMeetings[a].date || '';
-            const dateB = filteredMeetings[b].date || '';
 
-            if (dateA && dateB) {
-                return dateA.localeCompare(dateB);
-            }
-            return a.localeCompare(b);
-        });
+        // --------------------------------------------------------
+        // 排序
+        // --------------------------------------------------------
 
-        // 「由新到舊」(desc) 進行反轉
-        if (sortOrder === 'desc') {
+        let sortedTitles =
+            Object.keys(
+                filteredMeetings
+            ).sort((a, b) => {
+
+                const dateA =
+                    filteredMeetings[a].date || '';
+
+                const dateB =
+                    filteredMeetings[b].date || '';
+
+
+                if (
+                    dateA &&
+                    dateB
+                ) {
+
+                    return dateA.localeCompare(
+                        dateB
+                    );
+                }
+
+
+                return a.localeCompare(b);
+            });
+
+
+        if (
+            sortOrder === 'desc'
+        ) {
+
             sortedTitles.reverse();
         }
 
-        renderMeetings(filteredMeetings, sortedTitles);
+
+        renderMeetings(
+            filteredMeetings,
+            sortedTitles
+        );
     }
 
-    // ================= 5. 畫面渲染 =================
-    function renderMeetings(meetings, sortedTitles) {
-        const container = document.getElementById('meetings-container');
+
+    // ============================================================
+    // 11. 畫面渲染
+    // ============================================================
+
+    function renderMeetings(
+        meetings,
+        sortedTitles
+    ) {
+
+        const container =
+            document.getElementById(
+                'meetings-container'
+            );
+
+
         container.innerHTML = '';
 
-        if (sortedTitles.length === 0) {
-            container.innerHTML = '<div class="no-data">🔍 查無符合關鍵字的會議紀錄</div>';
+
+        if (
+            sortedTitles.length === 0
+        ) {
+
+            container.innerHTML =
+                '<div class="no-data">🔍 查無符合關鍵字的會議紀錄</div>';
+
             return;
         }
 
+
         sortedTitles.forEach(title => {
-            const meeting = meetings[title];
-            const card = document.createElement('div');
-            card.className = 'meeting-card';
+
+            const meeting =
+                meetings[title];
+
+
+            const card =
+                document.createElement(
+                    'div'
+                );
+
+
+            card.className =
+                'meeting-card';
+
 
             let pdfButtonHtml = '';
-            if (meeting.pdfUrl) {
-                pdfButtonHtml = `<a href="${meeting.pdfUrl}" target="_blank" class="pdf-btn">📄 查看完整紀錄 PDF</a>`;
+
+
+            if (
+                meeting.pdfUrl
+            ) {
+
+                pdfButtonHtml = `
+                    <a
+                        href="${meeting.pdfUrl}"
+                        target="_blank"
+                        class="pdf-btn"
+                    >
+                        📄 查看完整紀錄 PDF
+                    </a>
+                `;
             }
 
+
             let itemsHtml = '';
-            if (meeting.items && meeting.items.length > 0) {
-                itemsHtml = '<ul class="item-list">' + meeting.items.map(item => `
-                    <li class="item-row">
-                        <span class="item-tag">${escapeHtml(item.tag)}</span>
-                        <span class="item-content">${escapeHtml(item.content)}</span>
-                    </li>
-                `).join('') + '</ul>';
+
+
+            if (
+                meeting.items &&
+                meeting.items.length > 0
+            ) {
+
+                itemsHtml =
+                    '<ul class="item-list">' +
+
+                    meeting.items
+                        .map(item => `
+                            <li class="item-row">
+                                <span class="item-tag">
+                                    ${escapeHtml(item.tag)}
+                                </span>
+
+                                <span class="item-content">
+                                    ${escapeHtml(item.content)}
+                                </span>
+                            </li>
+                        `)
+                        .join('') +
+
+                    '</ul>';
+
             } else {
-                itemsHtml = '<p style="color: #999; font-style: italic;">（無詳細決議摘要）</p>';
+
+                itemsHtml =
+                    '<p style="color: #999; font-style: italic;">（無詳細決議摘要）</p>';
             }
+
 
             card.innerHTML = `
                 <div class="meeting-header">
+
                     <div>
-                        <h2 class="meeting-title">${escapeHtml(title)}</h2>
-                        <div class="meeting-date">🗓️ 開會日期：${escapeHtml(meeting.date || '未提供')}</div>
+
+                        <h2 class="meeting-title">
+                            ${escapeHtml(title)}
+                        </h2>
+
+                        <div class="meeting-date">
+                            🗓️ 開會日期：
+                            ${escapeHtml(
+                                meeting.date || '未提供'
+                            )}
+                        </div>
+
                     </div>
-                    <div>${pdfButtonHtml}</div>
+
+                    <div>
+                        ${pdfButtonHtml}
+                    </div>
+
                 </div>
+
                 ${itemsHtml}
             `;
 
+
             container.appendChild(card);
+
         });
     }
 
+
+    // ============================================================
+    // 12. 錯誤訊息
+    // ============================================================
+
     function showError(msg) {
-        const errorDiv = document.getElementById('error-container');
-        errorDiv.innerHTML = `<div class="error-msg">⚠️ ${msg}</div>`;
+
+        const errorDiv =
+            document.getElementById(
+                'error-container'
+            );
+
+
+        errorDiv.innerHTML =
+            `<div class="error-msg">
+                ⚠️ ${msg}
+            </div>`;
     }
 
+
+    // ============================================================
+    // 13. HTML 安全處理
+    // ============================================================
+
     function escapeHtml(str) {
+
         return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+
+            .replace(
+                /&/g,
+                "&amp;"
+            )
+
+            .replace(
+                /</g,
+                "&lt;"
+            )
+
+            .replace(
+                />/g,
+                "&gt;"
+            )
+
+            .replace(
+                /"/g,
+                "&quot;"
+            )
+
+            .replace(
+                /'/g,
+                "&#039;"
+            );
     }
+
 </script>
+```
+
 
 </body>
 </html>
