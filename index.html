@@ -204,13 +204,15 @@
         // 1. 歷史紀錄的 Google 試算表 ID
         const HISTORY_SPREADSHEET_ID = '1TziBWbOghOO7UHj_Pg5R4OfWM442_qYnOdoCALRY5Tg';
     
-        // 2. 表單回覆的 Google 試算表 ID（如果您開了新的，請填入新的 ID）
+        // 2. 表單回覆的 Google 試算表 ID
         const FORM_SPREADSHEET_ID = '1_bREXnxsJrbAo2aPz_UmcKNASL1lwiBEo5GyOFWC74E';
     
-        // 對應的 API 網址（因為是獨立的試算表，預設通常是第一個工作表，或指定名稱）
+        // 對應的 API 網址（修正模板字串語法）
         const HISTORICAL_URL = `https://docs.google.com/spreadsheets/d/\({HISTORY_SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=\){encodeURIComponent('歷史紀錄')}`;
     
         const FORM_URL = `https://docs.google.com/spreadsheets/d/${FORM_SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
+    // 另外，還需要宣告一個全域變數來存放合併後的會議資料（原本程式碼漏宣告了這個變數）
+    let globalMeetings = {};
 
     // ================= 2. 工具函數 =================
     function parseGoogleResponse(responseText) {
