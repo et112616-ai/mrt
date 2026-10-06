@@ -189,7 +189,7 @@
     </div>
 
     <script>
-        const SHEET_ID = '1TziBWbOghOO7UHj_Pg5R4OfWM442_qYnOdoCALRY5Tg';
+        const SHEET_ID = '1_idMkOxYS7Fwi0HZMfOXW4Ibmn4kJ7sIgPQuDlVIz88';
         
         // 抓取 1~59 次歷史紀錄（工作表名稱：歷史紀錄）
         const HISTORICAL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=歷史紀錄`;
@@ -230,29 +230,21 @@
                 });
             }
 
-           // 2. 處理 60 次以後的表單回覆 (工作表 2: 表單回覆 1)
+            // 2. 處理 60 次以後的表單回覆資料
+            // 表單欄位：[0]時間戳記, [1]會議名稱, [2]日期, [3]摘要內容, [4]PDF連結
             if (formText) {
                 const rows = parseJsonData(formText);
                 rows.forEach(row => {
-                    if (!row.c || !row.c[1]) return; // 無會議抬頭則跳過
+                    if (!row.c || !row.c[1]) return;
+                    const title = row.c[1] ? row.c[1].v : '';
+                    const date = row.c[2] ? row.c[2].v : '';
+                    const content = row.c[3] ? row.c[3].v : '';
+                    const pdfUrl = (row.c[4] && row.c[4].v) ? row.c[4].v : '';
 
-                    const title = row.c[1] ? row.c[1].v : '';       // B 欄：會議抬頭
-                    const date = row.c[2] ? row.c[2].v : '';        // C 欄：會議日期
-                    const tag = row.c[3] ? row.c[3].v : '決議摘要';  // D 欄：標題
-                    const content = row.c[4] ? row.c[4].v : '';    // E 欄：會議摘要
-                    
-                    // 優先讀取 F 欄 (表單上傳連結)，若為空則備用讀取 G 欄 (AppsScript比對連結)
-                    let pdfUrl = '';
-                    if (row.c[5] && row.c[5].v) {
-                        pdfUrl = row.c[5].v;
-                    } else if (row.c[6] && row.c[6].v) {
-                        pdfUrl = row.c[6].v;
-                    }
-            
                     if (!meetings[title]) {
                         meetings[title] = { date: date, pdfUrl: pdfUrl, items: [] };
                     }
-                    meetings[title].items.push({ tag: tag, content: content });
+                    meetings[title].items.push({ tag: '決議摘要', content: content });
                 });
             }
 
