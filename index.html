@@ -209,8 +209,8 @@
         const FORM_SPREADSHEET_ID = '1_bREXnxsJrbAo2aPz_UmcKNASL1lwiBEo5GyOFWC74E';
 
         // 3. 確保使用「反引號 (`)」包覆，這樣 ${...} 變數才能正確代入
-        const HISTORICAL_URL = `https://docs.google.com/spreadsheets/d/({HISTORY_SPREADSHEET_ID}/gviz/tq?tqx=out:json&)`;
-        const FORM_URL = `https://docs.google.com/spreadsheets/d/({FORM_SPREADSHEET_ID}/gviz/tq?tqx=out:json)`;
+        const HISTORICAL_URL = `https://docs.google.com/spreadsheets/d/{HISTORY_SPREADSHEET_ID}/gviz/tq?tqx=out:json&`;
+        const FORM_URL = `https://docs.google.com/spreadsheets/d/{FORM_SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
 
     // ================= 2. 工具函數 =================
     function parseGoogleResponse(responseText) {
